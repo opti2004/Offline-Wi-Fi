@@ -1,0 +1,79 @@
+If sudo systemctl start hostapd does not work using a usb adapter
+------------------------------------------
+check that *AP is there using
+------------------------------------------
+iw list | grep -A 10 'Supported interface modes'
+Look for * AP if it is missing your hardware cannot run hostapd
+
+To find the specific error type
+sudo hostapd -dd /etc/hostapd/hostapd.conf
+This will show any errors with the conf file 
+-------------------------------------------
+find out which kind you are using with lsusb
+-------------------------------------------
+look for something like Wireless Adapter [Realtek ...] #this part may change based on the adapter
+-------------------------------------------
+If needed type this to get the hostapd "extention" for the usb wifi adapter
+git clone https://github.com/jenssegers/RTL8188-hostapd
+-------------------------------------------
+-------------------------------------------
+then build the hostapd type
+-------------------------------------------
+cd RTL8188-hostapd/hostapd
+make
+
+this will take some time so let it run for a while.
+once it is done install the make
+
+sudo make install
+
+then restart
+Sudo reboot
+---------------------------------------------
+after this there are a few things you need to do
+---------------------------------------------
+delete the driver line (if needed) check static IP config
+
+sudo nano /etc/dhcpcd.conf
+then remove driver=... line
+----------------------------------------------
+Make sure the static ip looks like
+static ip_address=192.168.4.1/24
+
+then check with ip 
+
+ip a | grep wlan0
+
+make sure it shows the ip set under wlan0
+---------------------------------------------
+dhcpcd may not be giving ip addresses
+---------------------------------------------
+check status
+
+sudo systemctl status dnsmasq
+if it is failing check config should look like
+
+interface=wlan0
+dhcp-range=192.168.4.2,192.168.4.20,255.255.2550.0,244
+
+----------------------------------------------
+stop and disable wpa_supplicant
+----------------------------------------------
+sudo systemctl stop wpa_supplicant
+sudo systemctl disable wpa_supplicant
+-----------------------------------------------
+stop and disable NetworkManager restart hostapd
+----------------------------------------------
+sudo systemctl stop NetworkManager
+sudo systemctl disable NetworkManager
+sudo systemctl restart hostapd
+-----------------------------------------------
+Check for the correct country code
+-----------------------------------------------
+sudo raspi-config
+
+Localisation Options -> WLAN country
+then select your country.
+
+reboot pi and you should be able to connect.
+
